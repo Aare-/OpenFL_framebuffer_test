@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<!-- NMML reference: https://gist.github.com/1763850 -->
+
+	<meta title="Framebuffer test" package="com.subfty.fbtest" version="1.0.0" company="Submachine Factory" />
+	
+	<!-- output -->
+	<app main="com.subfty.fbtest.Main" file="Framebuffer Test" path="bin" />
+	
+	<window background="#000000" fps="60" />
+
+	<window width="360" height="640" orientation="portrait" resizable="true" if="desktop"/>
+    <window width="0" height="0" orientation="portrait" fullscreen="true" if="android"/>
+    <window width="0" height="0" fullscreen="true" orientation="portrait" if="ios"/>
+    <window width="0" height="0" orientation="portrait" fullscreen="true" if="blackberry"/>
+	<!--<window vsync="true" antialiasing="0" if="cpp" />-->
+    <!-- stencil-buffer="true"  -->
+	
+	<!-- classpath, haxe libs -->
+	<source path="src" />
+    <source path="assets" />
+		
+	<!-- icons -->
+    <icon path="assets/icons/ico.png"/>
+	
+	<assets rename="img"  path="assets/images" />    
+	
+	<!-- Libs -->	
+    <haxelib name="hxcpp"/>
+    <haxelib name="openfl"/>
+    <haxelib name="polygonal-core"/>
+    <haxelib name="polygonal-ds"/>
+    <haxelib name="inthebox-macros"/>
+
+	<!-- DLLs -->
+	<ndll name="std" />
+	<ndll name="regexp" />
+	<ndll name="zlib" />
+
+	<template path="templates/android/Nat.java" 
+			  rename="src/com/subfty/sub/nat/Nat.java" if="android" />
+
+    <haxedef name="HX_UTF8_STRINGS"/>
+    <!-- Config -->
+    <!-- <haxedef name="SHOW_FPS"/>-->
+
+    <haxedef name="USE_OPENGL" />
+</project>
