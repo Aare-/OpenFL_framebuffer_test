@@ -24,33 +24,34 @@ import openfl.utils.UInt8Array;
 class RenderFilter {      
     var vertex_shader : String 
     = "
-uniform mat4 projectionMatrix;
+//uniform mat4 projectionMatrix;
 
 attribute vec2 aPos;
-attribute vec4 aSize;
+//attribute vec4 aSize;
 
-varying vec2 vTexCoord;
+//varying vec2 vTexCoord;
 
 void main(){
-    vTexCoord = vec2(aPos.x, 1.0 - aPos.y);
-    gl_Position = projectionMatrix * 
-                  vec4(aPos.x * aSize.z + aSize.x, 
-                       aPos.y * aSize.w + aSize.y, 0., 1.);                    
+    //vTexCoord = vec2(aPos.x, 1.0 - aPos.y);
+    gl_Position = //projectionMatrix * 
+                  vec4(aPos.x * 100. - 50.,//aPos.x * aSize.z + aSize.x, 
+                       aPos.y * (100.) - 50., 0., 1.);//aPos.y * aSize.w + aSize.y, 0., 1.);                    
 }
 ";
     
     var fragment_shader : String = "
-uniform sampler2D uSampler;
+//uniform sampler2D uSampler;
 
-varying vec2 vTexCoord;
+//varying vec2 vTexCoord;
 
 void main( void ) {     
-     vec4 r = texture2D(uSampler, vTexCoord + vec2(0.01, 0.0));
-     vec4 g = texture2D(uSampler, vTexCoord + vec2(0.0, 0.01));
-     vec4 b = texture2D(uSampler, vTexCoord + vec2(0.01, 0.01));
-     vec4 a = texture2D(uSampler, vTexCoord);
+     //vec4 r = texture2D(uSampler, vTexCoord + vec2(0.01, 0.0));
+     //vec4 g = texture2D(uSampler, vTexCoord + vec2(0.0, 0.01));
+     //vec4 b = texture2D(uSampler, vTexCoord + vec2(0.01, 0.01));
+     //vec4 a = texture2D(uSampler, vTexCoord);
 
-     gl_FragColor = vec4(r.r, g.g, b.b, a.a) + vec4(0.1, 0., 0., 0.);    
+     gl_FragColor = //vec4(r.r, g.g, b.b, a.a) + 
+                    vec4(1., 0., 0., 0.);    
 }
 
 
@@ -65,9 +66,6 @@ void main( void ) {
     public var texHeight : Int;        
 
     var shaderProgram : GLProgram;
-
-    var texSamplerL : GLUniformLocation;
-    var projMatrixL : GLUniformLocation;
 
     var projMatrix : Matrix3D;
 
@@ -108,9 +106,6 @@ void main( void ) {
                 throw result;
         }
 
-        texSamplerL = GL.getUniformLocation(prog, "texSampler");
-        projMatrixL = GL.getUniformLocation(prog, "projectionMatrix");
-
         aPos = GL.getAttribLocation(prog, "aPos");
         aSize = GL.getAttribLocation(prog, "aSize");
 
@@ -134,11 +129,13 @@ void main( void ) {
     }
 
     function setupBuffer(){        
-        framebuffer = GL.createFramebuffer();
+        framebuffer = GL.createFramebuffer();        
         GL.bindFramebuffer(GL.FRAMEBUFFER, framebuffer);
 
         texture = GL.createTexture();
+        
         GL.bindTexture(GL.TEXTURE_2D, texture);
+        
 
         texWidth = 2;
         texHeight = 2;
@@ -150,6 +147,7 @@ void main( void ) {
         GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA,
                       texWidth, texHeight,
                       0, GL.RGBA, GL.UNSIGNED_BYTE, null);
+        
 
         GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.NEAREST);
         GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST);
@@ -168,59 +166,56 @@ void main( void ) {
 
         vertexBuffer = GL.createBuffer ();
         GL.bindBuffer (GL.ARRAY_BUFFER, vertexBuffer);
+        
         GL.bufferData (GL.ARRAY_BUFFER, new Float32Array (cast vertices), GL.STATIC_DRAW);
+        
         GL.bindBuffer (GL.ARRAY_BUFFER, null);
-
-        //GL.bindTexture(GL.TEXTURE_2D, null);
+        GL.bindTexture(GL.TEXTURE_2D, null);
     }
-
-	public inline function clear() {
-		GL.bindFramebuffer(GL.FRAMEBUFFER, framebuffer);
-        GL.clearColor(0.0, 0.0, 0.0, 0.0);
-        GL.clear(GL.COLOR_BUFFER_BIT);
-	}
 	
     public inline function begin() {
-        clear();
-
-        GL.viewport(0, 0,
-                    Std.int(Main.SCREEN_W),
-                    Std.int(Main.SCREEN_H));
+        /*GL.bindFramebuffer(GL.FRAMEBUFFER, framebuffer);
+        GL.clearColor(0.0, 0.0, 0.0, 0.0);
+        GL.clear(GL.COLOR_BUFFER_BIT);   */
     }
 
     public inline function end(){
-        GL.bindFramebuffer( GL.FRAMEBUFFER, Main.screenBuffer);
-        GL.viewport(0, 0,
-                    Std.int(Main.SCREEN_W),
-                    Std.int(Main.SCREEN_H));
-
+        /*GL.flush();
+        GL.bindFramebuffer( GL.FRAMEBUFFER, Main.screenBuffer);*/
     }    
 
-    public inline function render() {        
+    public inline function render() {    
+        GL.flush();    
+        
         GL.useProgram (shaderProgram);
 
-        GL.uniformMatrix3D (projMatrixL, false, projMatrix);
+        //GL.uniformMatrix3D (GL.getUniformLocation(shaderProgram, "projectionMatrix"), false, projMatrix);
 
-        GL.uniform1i(texSamplerL, 0);
-        GL.activeTexture(GL.TEXTURE0);
-        GL.bindTexture (GL.TEXTURE_2D, texture);
+        //GL.activeTexture(GL.TEXTURE0);
+        //GL.bindTexture (GL.TEXTURE_2D, texture);
+        //GL.uniform1i(GL.getUniformLocation(shaderProgram, "texSampler"), 0);
+        
 
         GL.bindBuffer (GL.ARRAY_BUFFER, vertexBuffer);
+        
 
         GL.enableVertexAttribArray (aPos);
         GL.vertexAttribPointer (aPos, 2, GL.FLOAT, false, 0, 0);        
+        
       
-        var wScale : Float = texWidth / Main.SCREEN_W;
+        /*var wScale : Float = texWidth / Main.SCREEN_W;
         var hScale : Float = texHeight / Main.SCREEN_H;
         GL.vertexAttrib4f(aSize,
                           0, -Main.SCREEN_H * (-1.0 + hScale),                          
-                          Main.SCREEN_W * wScale, Main.SCREEN_H * hScale);        
+                          Main.SCREEN_W * wScale, Main.SCREEN_H * hScale);        */
 
         GL.drawArrays (GL.TRIANGLE_STRIP, 0, 4);
+        
 
         GL.disableVertexAttribArray(aPos);
+        
         GL.bindBuffer(GL.ARRAY_BUFFER, null);
-        GL.bindTexture(GL.TEXTURE_2D, null); 
+        //GL.bindTexture(GL.TEXTURE_2D, null); 
     }
 
     public function dispose(){

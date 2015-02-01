@@ -35,7 +35,7 @@ class Main extends Sprite {
     override public function new(){     
         super();
 
-        screenBuffer = new GLFramebuffer(GL.version, GL.getParameter(GL.FRAMEBUFFER_BINDING));        
+        screenBuffer = new GLFramebuffer(GL.version, GL.getParameter(GL.FRAMEBUFFER_BINDING));             
 
         SCREEN_W = Lib.current.stage.stageWidth / 1.0;
         SCREEN_H = Lib.current.stage.stageHeight / 1.0;        
