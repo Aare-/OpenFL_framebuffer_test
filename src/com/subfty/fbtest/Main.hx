@@ -25,6 +25,7 @@ class Main extends Sprite {
     public static var SCREEN_H : Float;    
 
     var dogeContainer : Sprite;
+    var space : Bitmap;
     var doge : Bitmap;
     
     var renderFilter : RenderFilter;
@@ -44,15 +45,24 @@ class Main extends Sprite {
 
         renderFilter = new RenderFilter();
 
+        space = new Bitmap(Assets.getBitmapData("img/space.jpg"));
+        space.x = 0;
+        space.y = 0;
+
         doge = new Bitmap(Assets.getBitmapData("img/test.jpeg"));
         doge.x = -263;
         doge.y = -264;        
 
+        trace("siema!");
+
         dogeContainer = new Sprite();
         dogeContainer.addChild(doge);
+        dogeContainer.scaleX = 0.35;
+        dogeContainer.scaleY = 0.35;
 
         stage.addEventListener(Event.ENTER_FRAME, onEnterFrame);
 
+        addChild(space);
         addChild(
             new OpenglViewWrapper(function(){
                 renderFilter.begin();

@@ -50,7 +50,7 @@ void main( void ) {
      vec4 b = texture2D(uSampler, vTexCoord + vec2(0.01, 0.01));
      vec4 a = texture2D(uSampler, vTexCoord);
 
-     gl_FragColor = vec4(r.r, g.g, b.b, a.a);    
+     gl_FragColor = vec4(r.r, g.g, b.b, a.a) + vec4(0.1, 0., 0., 0.);    
 }
 
 
