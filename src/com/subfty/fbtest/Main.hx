@@ -53,7 +53,7 @@ class Main extends Sprite {
         doge.x = -263;
         doge.y = -264;        
 
-        trace("siema!");
+        trace("siema! lol");
 
         dogeContainer = new Sprite();
         dogeContainer.addChild(doge);

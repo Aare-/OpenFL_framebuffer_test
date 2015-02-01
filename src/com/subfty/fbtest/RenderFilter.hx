@@ -24,18 +24,19 @@ import openfl.utils.UInt8Array;
 class RenderFilter {      
     var vertex_shader : String 
     = "
-uniform mat4 projectionMatrix;
 
-attribute vec2 aPos;
-attribute vec4 aSize;
+uniform mat4 pmat;
+uniform vec4 size;
+
+attribute vec2 pos;
 
 varying vec2 vTexCoord;
 
 void main(){
-    vTexCoord = vec2(aPos.x, 1.0 - aPos.y);
-    gl_Position = projectionMatrix * 
-                  vec4(aPos.x * aSize.z + aSize.x, 
-                       aPos.y * aSize.w + aSize.y, 0., 1.);                    
+    vTexCoord = vec2(pos.x, 1.0 - pos.y);
+    gl_Position = pmat * 
+                  vec4(pos.x * size.z + size.x, 
+                       pos.y * size.w + size.y, 0., 1.);                    
 }
 ";
     
@@ -45,12 +46,13 @@ uniform sampler2D uSampler;
 varying vec2 vTexCoord;
 
 void main( void ) {     
+
      vec4 r = texture2D(uSampler, vTexCoord + vec2(0.01, 0.0));
      vec4 g = texture2D(uSampler, vTexCoord + vec2(0.0, 0.01));
      vec4 b = texture2D(uSampler, vTexCoord + vec2(0.01, 0.01));
      vec4 a = texture2D(uSampler, vTexCoord);
 
-     gl_FragColor = vec4(r.r, g.g, b.b, a.a) + vec4(0.1, 0., 0., 0.);    
+     gl_FragColor = vec4(r.r, g.g, b.b, a.a);    
 }
 
 
@@ -70,9 +72,6 @@ void main( void ) {
     var projMatrixL : GLUniformLocation;
 
     var projMatrix : Matrix3D;
-
-    var aPos : Int;
-    var aSize : Int;
 
     var srcRect : Rectangle;
     var targetRenderRect : Rectangle;
@@ -107,12 +106,11 @@ void main( void ) {
             if (result!="")
                 throw result;
         }
-
-        texSamplerL = GL.getUniformLocation(prog, "texSampler");
-        projMatrixL = GL.getUniformLocation(prog, "projectionMatrix");
-
-        aPos = GL.getAttribLocation(prog, "aPos");
-        aSize = GL.getAttribLocation(prog, "aSize");
+        
+        aPos = GL.getAttribLocation(prog, "pos");
+        aSize = GL.getUniformLocation(prog, "size");        
+        sampler = GL.getUniformLocation(prog, "uSampler");
+        projMatL = GL.getUniformLocation(prog, "pmat");
 
         return prog;
     }
@@ -133,33 +131,36 @@ void main( void ) {
         return shader;
     }
 
+    var aSize : Int;
+    var aPos : Int;
+    var projMatL : Dynamic;
+    var sampler : Dynamic;
+
     function setupBuffer(){        
-        framebuffer = GL.createFramebuffer();
-        GL.bindFramebuffer(GL.FRAMEBUFFER, framebuffer);
-
-        texture = GL.createTexture();
-        GL.bindTexture(GL.TEXTURE_2D, texture);
-
         texWidth = 2;
         texHeight = 2;
         while(texWidth < Main.SCREEN_W || texHeight < Main.SCREEN_H) {
             texWidth *= 2;
             texHeight *= 2;        
-        }        
+        }    
+        
+        framebuffer = GL.createFramebuffer();        
+        GL.bindFramebuffer(GL.FRAMEBUFFER, framebuffer);
 
-        GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA,
-                      texWidth, texHeight,
-                      0, GL.RGBA, GL.UNSIGNED_BYTE, null);
+        texture = GL.createTexture();
+        GL.bindTexture(GL.TEXTURE_2D, texture);    
 
         GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.NEAREST);
         GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST);
         GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.REPEAT);
         GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.REPEAT);
-        
-        GL.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, texture, 0);
-        GL.bindFramebuffer( GL.FRAMEBUFFER, Main.screenBuffer);
 
+        GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA,
+                      texWidth, texHeight,
+                      0, GL.RGBA, GL.UNSIGNED_BYTE, null);
         
+        GL.framebufferTexture2D(GL.FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, texture, 0);        
+
         var vertices = [1, 1,
                         0, 1,
                         1, 0,
@@ -171,7 +172,7 @@ void main( void ) {
         GL.bufferData (GL.ARRAY_BUFFER, new Float32Array (cast vertices), GL.STATIC_DRAW);
         GL.bindBuffer (GL.ARRAY_BUFFER, null);
 
-        //GL.bindTexture(GL.TEXTURE_2D, null);
+        GL.bindFramebuffer( GL.FRAMEBUFFER, Main.screenBuffer);
     }
 
 	public inline function clear() {
@@ -186,24 +187,26 @@ void main( void ) {
         GL.viewport(0, 0,
                     Std.int(Main.SCREEN_W),
                     Std.int(Main.SCREEN_H));
+        
+        GL.bindFramebuffer(GL.FRAMEBUFFER, framebuffer);
+        GL.viewport(0, 0, Std.int(Main.SCREEN_W), Std.int(Main.SCREEN_H));
+        GL.clearColor(0.0, 0.0, 0.0, 0.0);
+        GL.clear(GL.COLOR_BUFFER_BIT);  
     }
 
     public inline function end(){
         GL.bindFramebuffer( GL.FRAMEBUFFER, Main.screenBuffer);
-        GL.viewport(0, 0,
-                    Std.int(Main.SCREEN_W),
-                    Std.int(Main.SCREEN_H));
-
+        GL.viewport(0, 0, Std.int(Main.SCREEN_W), Std.int(Main.SCREEN_H));
     }    
 
-    public inline function render() {        
+    public inline function render() {    
         GL.useProgram (shaderProgram);
 
-        GL.uniformMatrix3D (projMatrixL, false, projMatrix);
+        GL.uniformMatrix3D (projMatL, false, projMatrix);
 
-        GL.uniform1i(texSamplerL, 0);
         GL.activeTexture(GL.TEXTURE0);
         GL.bindTexture (GL.TEXTURE_2D, texture);
+        GL.uniform1i(sampler, 0);
 
         GL.bindBuffer (GL.ARRAY_BUFFER, vertexBuffer);
 
@@ -212,15 +215,15 @@ void main( void ) {
       
         var wScale : Float = texWidth / Main.SCREEN_W;
         var hScale : Float = texHeight / Main.SCREEN_H;
-        GL.vertexAttrib4f(aSize,
-                          0, -Main.SCREEN_H * (-1.0 + hScale),                          
-                          Main.SCREEN_W * wScale, Main.SCREEN_H * hScale);        
+        GL.uniform4f(aSize,
+                     0, -Main.SCREEN_H * (-1.0 + hScale),                          
+                     Main.SCREEN_W * wScale, Main.SCREEN_H * hScale);        
+
 
         GL.drawArrays (GL.TRIANGLE_STRIP, 0, 4);
-
+        
         GL.disableVertexAttribArray(aPos);
         GL.bindBuffer(GL.ARRAY_BUFFER, null);
-        GL.bindTexture(GL.TEXTURE_2D, null); 
     }
 
     public function dispose(){
