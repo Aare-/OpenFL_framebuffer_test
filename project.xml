@@ -27,10 +27,7 @@
 	
 	<!-- Libs -->	
     <haxelib name="hxcpp"/>
-    <haxelib name="openfl"/>
-    <haxelib name="polygonal-core"/>
-    <haxelib name="polygonal-ds"/>
-    <haxelib name="inthebox-macros"/>
+    <haxelib name="openfl"/>    
 
 	<!-- DLLs -->
 	<ndll name="std" />
