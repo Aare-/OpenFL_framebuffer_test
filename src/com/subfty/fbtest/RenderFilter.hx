@@ -174,22 +174,11 @@ void main( void ) {
 
         GL.bindFramebuffer( GL.FRAMEBUFFER, Main.screenBuffer);
     }
-
-	public inline function clear() {
-		GL.bindFramebuffer(GL.FRAMEBUFFER, framebuffer);
-        GL.clearColor(0.0, 0.0, 0.0, 0.0);
-        GL.clear(GL.COLOR_BUFFER_BIT);
-	}
 	
-    public inline function begin() {
-        clear();
-
-        GL.viewport(0, 0,
-                    Std.int(Main.SCREEN_W),
-                    Std.int(Main.SCREEN_H));
-        
+    public inline function begin() {                    
         GL.bindFramebuffer(GL.FRAMEBUFFER, framebuffer);
         GL.viewport(0, 0, Std.int(Main.SCREEN_W), Std.int(Main.SCREEN_H));
+        
         GL.clearColor(0.0, 0.0, 0.0, 0.0);
         GL.clear(GL.COLOR_BUFFER_BIT);  
     }
